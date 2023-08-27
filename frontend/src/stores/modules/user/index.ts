@@ -13,6 +13,7 @@ export const useUserStore = defineStore(
     const userTokenCookieName = '_U';
     const userKievRPSSecAuthCookieName = 'KievRPSSecAuth';
     const userRwBfCookieName = '_RwBf';
+    const userMUIDCookieName = 'MUID';
     const randIpCookieName = 'BingAI_Rand_IP';
     const authKeyCookieName = 'BingAI_Auth_Key';
     const cookiesStr = ref('');
@@ -65,7 +66,10 @@ export const useUserStore = defineStore(
       return userCookieVal;
     };
 
-    const checkUserToken = () => {
+    const checkUserToken = async () => {
+      await fetch('/search?q=Bing+AI&showconv=1&FORM=hpcodx&ajaxhist=0&ajaxserp=0&cc=us', {
+        credentials: 'include',
+      })
       if (historyEnable.value) {
         CIB.vm.sidePanel.isVisibleDesktop = true;
         document.querySelector('cib-serp')?.setAttribute('alignment', 'left');
@@ -134,11 +138,20 @@ export const useUserStore = defineStore(
       cookies.set(userRwBfCookieName, token, 7 * 24 * 60, '/');
     };
 
+    const getUserMUID = () => {
+      const userCookieVal = cookies.get(userMUIDCookieName) || '';
+      return userCookieVal;
+    };
+
+    const saveUserMUID = (token: string) => {
+      cookies.set(userMUIDCookieName, token, 7 * 24 * 60, '/');
+    };
+
     const resetCache = async () => {
-      const keys = document.cookie.match(/[^ =;]+(?=\=)/g);
+      const keys = document.cookie.split(";");
       if (keys) {
         for (let i = keys.length; i--;)
-          document.cookie = keys[i] + '=0;expires=' + new Date(0).toUTCString()
+          document.cookie = keys[i].split('=')[0] + '=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
       }
       await clearCache();
     };
@@ -167,6 +180,8 @@ export const useUserStore = defineStore(
       saveUserKievRPSSecAuth,
       getUserRwBf,
       saveUserRwBf,
+      getUserMUID,
+      saveUserMUID,
       saveCookies,
       cookiesStr,
       historyEnable,
